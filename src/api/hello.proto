@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option go_package = "pkg/grpc";
+
+package myapp;
+
+// サービスの定義
+service GreetingService {
+  rpc Hello (HelloRequest) returns (HelloResponse);
+}
+
+// 型の定義
+message HelloRequest {
+  string name = 1;
+}
+
+message HelloResponse {
+  string message = 1;
+}
