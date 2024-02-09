@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 	"log"
 	"net"
 	"os"
@@ -22,6 +23,8 @@ func main() {
 	s := grpc.NewServer()
 
 	hallopb.RegisterGreetingServiceServer(s, NewMyServer())
+
+	reflection.Register(s)
 
 	go func() {
 		log.Printf("start gRPC server port: %v", port)
