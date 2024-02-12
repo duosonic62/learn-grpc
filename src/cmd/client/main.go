@@ -45,7 +45,7 @@ func main() {
 		in := scanner.Text()
 		switch in {
 		case "1":
-			fmt.Println()
+			Hello()
 		case "2":
 			fmt.Println("Bye.")
 			goto M
