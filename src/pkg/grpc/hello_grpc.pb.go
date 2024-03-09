@@ -19,9 +19,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	GreetingService_Hello_FullMethodName             = "/myapp.GreetingService/Hello"
-	GreetingService_HelloServerStream_FullMethodName = "/myapp.GreetingService/HelloServerStream"
-	GreetingService_HelloClientStream_FullMethodName = "/myapp.GreetingService/HelloClientStream"
+	GreetingService_Hello_FullMethodName                    = "/myapp.GreetingService/Hello"
+	GreetingService_HelloServerStream_FullMethodName        = "/myapp.GreetingService/HelloServerStream"
+	GreetingService_HelloClientStream_FullMethodName        = "/myapp.GreetingService/HelloClientStream"
+	GreetingService_HelloBidirectionalStream_FullMethodName = "/myapp.GreetingService/HelloBidirectionalStream"
 )
 
 // GreetingServiceClient is the client API for GreetingService service.
@@ -31,6 +32,7 @@ type GreetingServiceClient interface {
 	Hello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloResponse, error)
 	HelloServerStream(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (GreetingService_HelloServerStreamClient, error)
 	HelloClientStream(ctx context.Context, opts ...grpc.CallOption) (GreetingService_HelloClientStreamClient, error)
+	HelloBidirectionalStream(ctx context.Context, opts ...grpc.CallOption) (GreetingService_HelloBidirectionalStreamClient, error)
 }
 
 type greetingServiceClient struct {
@@ -116,6 +118,37 @@ func (x *greetingServiceHelloClientStreamClient) CloseAndRecv() (*HelloResponse,
 	return m, nil
 }
 
+func (c *greetingServiceClient) HelloBidirectionalStream(ctx context.Context, opts ...grpc.CallOption) (GreetingService_HelloBidirectionalStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &GreetingService_ServiceDesc.Streams[2], GreetingService_HelloBidirectionalStream_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &greetingServiceHelloBidirectionalStreamClient{stream}
+	return x, nil
+}
+
+type GreetingService_HelloBidirectionalStreamClient interface {
+	Send(*HelloRequest) error
+	Recv() (*HelloResponse, error)
+	grpc.ClientStream
+}
+
+type greetingServiceHelloBidirectionalStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *greetingServiceHelloBidirectionalStreamClient) Send(m *HelloRequest) error {
+	return x.ClientStream.SendMsg(m)
+}
+
+func (x *greetingServiceHelloBidirectionalStreamClient) Recv() (*HelloResponse, error) {
+	m := new(HelloResponse)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // GreetingServiceServer is the server API for GreetingService service.
 // All implementations must embed UnimplementedGreetingServiceServer
 // for forward compatibility
@@ -123,6 +156,7 @@ type GreetingServiceServer interface {
 	Hello(context.Context, *HelloRequest) (*HelloResponse, error)
 	HelloServerStream(*HelloRequest, GreetingService_HelloServerStreamServer) error
 	HelloClientStream(GreetingService_HelloClientStreamServer) error
+	HelloBidirectionalStream(GreetingService_HelloBidirectionalStreamServer) error
 	mustEmbedUnimplementedGreetingServiceServer()
 }
 
@@ -138,6 +172,9 @@ func (UnimplementedGreetingServiceServer) HelloServerStream(*HelloRequest, Greet
 }
 func (UnimplementedGreetingServiceServer) HelloClientStream(GreetingService_HelloClientStreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method HelloClientStream not implemented")
+}
+func (UnimplementedGreetingServiceServer) HelloBidirectionalStream(GreetingService_HelloBidirectionalStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method HelloBidirectionalStream not implemented")
 }
 func (UnimplementedGreetingServiceServer) mustEmbedUnimplementedGreetingServiceServer() {}
 
@@ -217,6 +254,32 @@ func (x *greetingServiceHelloClientStreamServer) Recv() (*HelloRequest, error) {
 	return m, nil
 }
 
+func _GreetingService_HelloBidirectionalStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(GreetingServiceServer).HelloBidirectionalStream(&greetingServiceHelloBidirectionalStreamServer{stream})
+}
+
+type GreetingService_HelloBidirectionalStreamServer interface {
+	Send(*HelloResponse) error
+	Recv() (*HelloRequest, error)
+	grpc.ServerStream
+}
+
+type greetingServiceHelloBidirectionalStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *greetingServiceHelloBidirectionalStreamServer) Send(m *HelloResponse) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func (x *greetingServiceHelloBidirectionalStreamServer) Recv() (*HelloRequest, error) {
+	m := new(HelloRequest)
+	if err := x.ServerStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // GreetingService_ServiceDesc is the grpc.ServiceDesc for GreetingService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -238,6 +301,12 @@ var GreetingService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "HelloClientStream",
 			Handler:       _GreetingService_HelloClientStream_Handler,
+			ClientStreams: true,
+		},
+		{
+			StreamName:    "HelloBidirectionalStream",
+			Handler:       _GreetingService_HelloBidirectionalStream_Handler,
+			ServerStreams: true,
 			ClientStreams: true,
 		},
 	},
