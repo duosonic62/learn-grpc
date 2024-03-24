@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
@@ -53,7 +54,11 @@ func NewMyServer() *myServer {
 }
 
 func (s *myServer) Hello(ctx context.Context, req *hallopb.HelloRequest) (*hallopb.HelloResponse, error) {
-	err := status.Error(codes.Unknown, "unknown error occurred")
+	stat := status.New(codes.Unknown, "unknown error occurred")
+	stat, _ = stat.WithDetails(&errdetails.DebugInfo{
+		Detail: "detail reason of err",
+	})
+	err := stat.Err()
 
 	return nil, err
 	//return &hallopb.HelloResponse{
