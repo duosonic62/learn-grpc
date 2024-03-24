@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
 	"io"
 	"log"
 	"net"
@@ -51,9 +53,12 @@ func NewMyServer() *myServer {
 }
 
 func (s *myServer) Hello(ctx context.Context, req *hallopb.HelloRequest) (*hallopb.HelloResponse, error) {
-	return &hallopb.HelloResponse{
-		Message: fmt.Sprintf("Hello, %s!", req.GetName()),
-	}, nil
+	err := status.Error(codes.Unknown, "unknown error occurred")
+
+	return nil, err
+	//return &hallopb.HelloResponse{
+	//	Message: fmt.Sprintf("Hello, %s!", req.GetName()),
+	//}, nil
 }
 
 func (s *myServer) HelloServerStream(req *hallopb.HelloRequest, stream hallopb.GreetingService_HelloServerStreamServer) error {
