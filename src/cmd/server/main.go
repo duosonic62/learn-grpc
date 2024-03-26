@@ -26,7 +26,7 @@ func main() {
 		panic(err)
 	}
 
-	s := grpc.NewServer(grpc.UnaryInterceptor(myUnaryServerInterceptor1))
+	s := grpc.NewServer(grpc.UnaryInterceptor(myUnaryServerInterceptor1), grpc.StreamInterceptor(myStreamServerInterceptor1))
 
 	hallopb.RegisterGreetingServiceServer(s, NewMyServer())
 
